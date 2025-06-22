@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor Agent - Math & Physics Assistant</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>AI</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .answer-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+
+        .answer-container.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .answer-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .answer-label::before {
+            margin-right: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .answer-text {
+            color: #555;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 12px;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .example-list {
+            list-style: none;
+        }
+
+        .example-list li {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-list li:hover {
+            background: #e8f0ff;
+            transform: translateX(5px);
+        }
+
+        .error {
+            background: #ffe6e6;
+            border-left-color: #ff4444;
+            color: #d32f2f;
+        }
+
+        .success {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Tutor Agent</h1>
+        <p class="subtitle">Ask me anything about Math or Physics!</p>
+        
+        <form id="ask-form">
+            <div class="form-group">
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="question" 
+                        name="question" 
+                        placeholder="e.g., What is 2 + 3? or What is Planck's constant?" 
+                        required
+                        autocomplete="off"
+                    >
+                </div>
+                <button type="submit" class="btn" id="submit-btn">
+                    Ask Question
+                </button>
+            </div>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Thinking...</p>
+        </div>
+
+        <div class="answer-container" id="answer-container">
+            <div class="answer-label">Answer:</div>
+            <div class="answer-text" id="answer-text"></div>
+        </div>
+
+        <div class="examples">
+            <h3>💡 Try these examples:</h3>
+            <ul class="example-list">
+                <li onclick="setQuestion('What is 2 + 3?')">What is 2 + 3?</li>
+                <li onclick="setQuestion('What is Planck\'s constant?')">What is Planck's constant?</li>
+                <li onclick="setQuestion('Calculate 15 * 7')">Calculate 15 * 7</li>
+                <li onclick="setQuestion('What is the speed of light?')">What is the speed of light?</li>
+                <li onclick="setQuestion('Explain quantum mechanics')">Explain quantum mechanics</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Powered by Gemini AI • Built with FastAPI</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('ask-form');
+        const questionInput = document.getElementById('question');
+        const submitBtn = document.getElementById('submit-btn');
+        const loading = document.getElementById('loading');
+        const answerContainer = document.getElementById('answer-container');
+        const answerText = document.getElementById('answer-text');
+
+        function setQuestion(question) {
+            questionInput.value = question;
+            questionInput.focus();
+        }
+
+        function showLoading() {
+            loading.style.display = 'block';
+            answerContainer.classList.remove('show');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Asking...';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ask Question';
+        }
+
+        function showAnswer(answer, isError = false) {
+            answerText.textContent = answer;
+            answerContainer.className = 'answer-container show';
+            
+            if (isError) {
+                answerContainer.classList.add('error');
+            } else {
+                answerContainer.classList.remove('error');
+                answerContainer.classList.add('success');
+            }
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            showLoading();
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAnswer(data.answer);
+                } else {
+                    showAnswer(data.detail || 'An error occurred', true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAnswer('Sorry, I encountered an error. Please try again.', true);
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // Add some nice interactions
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !submitBtn.disabled) {
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Focus the input on page load
+        window.addEventListener('load', () => {
+            questionInput.focus();
+        });
+    </script>
+</body>
+</html> 
