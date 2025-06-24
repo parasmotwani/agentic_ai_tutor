@@ -18,7 +18,7 @@ class GeminiClient:
     def __init__(self):
         self.api_key = GEMINI_API_KEY
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models/"
-        self.model = "gemini-1.5-flash"   # <-- Just ONE model
+        self.model = "gemini-1.5-flash"  
     
     async def get_response(self, prompt: str) -> str:
         """
